@@ -4,7 +4,7 @@ A modern application framework for Roblox. Strict Luau, zero runtime dependencie
 
 ## Installation
 
-Sync the `Weave` folder anywhere shared — `ReplicatedStorage/Weave` is conventional. There are no dependencies to install; Weave has none.
+Sync the `Weave` folder anywhere shared - `ReplicatedStorage/Weave` is conventional. There are no dependencies to install; Weave has none.
 
 ```json
 { "ReplicatedStorage": { "Weave": { "$path": "Weave" } } }
@@ -12,7 +12,7 @@ Sync the `Weave` folder anywhere shared — `ReplicatedStorage/Weave` is convent
 
 ## Core concepts
 
-**Tokens are typed identity.** Every service has a small *definition module* that exports its API type and a token cast against it. This is the module both implementations and consumers require — implementations never require each other, which is what keeps big graphs cycle-free at the `require` level and gives you full autocomplete on every service everywhere.
+**Tokens are typed identity.** Every service has a small *definition module* that exports its API type and a token cast against it. This is the module both implementations and consumers require - implementations never require each other, which is what keeps big graphs cycle-free at the `require` level and gives you full autocomplete on every service everywhere.
 
 ```lua
 -- DataService/definition.luau
@@ -57,7 +57,7 @@ return Weave.service({
 })
 ```
 
-The context in full: `ctx:use(token)` / `ctx:useOptional(token)` (typed dependency resolution — only declared tokens allowed), `ctx:own(x)` (connections/instances/threads released automatically at shutdown), `ctx:spawn(fn)`, `ctx:onStart / onReady / onShutdown / onDestroy`, `ctx.log`, `ctx:getConfig(key)`, `ctx:getMetadata(key)`.
+The context in full: `ctx:use(token)` / `ctx:useOptional(token)` (typed dependency resolution - only declared tokens allowed), `ctx:own(x)` (connections/instances/threads released automatically at shutdown), `ctx:spawn(fn)`, `ctx:onStart / onReady / onShutdown / onDestroy`, `ctx.log`, `ctx:getConfig(key)`, `ctx:getMetadata(key)`.
 
 **Apps are isolated worlds.** Nothing in Weave is global. A server has one App, a client has one App, and every test can have its own.
 
@@ -131,9 +131,9 @@ local future = net:callFuture(Shop.buy, { itemId = "bow" })  -- :cancel() suppor
 net:on(Shop.granted, function(payload) ... end)
 ```
 
-Guarantees: every inbound payload is validated before any handler runs; every endpoint is rate-limited (defaults 30/s, burst 60, per player) before anything else runs; RPC never uses RemoteFunction, so timeouts and cancellation always work; all traffic multiplexes over two remotes with per-frame batching; the schema fingerprint turns client/server version skew into an explicit policy event. Handler errors reach the caller as structured `"CODE: message"` strings — internals are logged server-side, never leaked to clients.
+Guarantees: every inbound payload is validated before any handler runs; every endpoint is rate-limited (defaults 30/s, burst 60, per player) before anything else runs; RPC never uses RemoteFunction, so timeouts and cancellation always work; all traffic multiplexes over two remotes with per-frame batching; the schema fingerprint turns client/server version skew into an explicit policy event. Handler errors reach the caller as structured `"CODE: message"` strings - internals are logged server-side, never leaked to clients.
 
-Middleware uses the shared pipeline model — `(ctx, next)` with a typed context — and covers auth, logging, metrics, and denial:
+Middleware uses the shared pipeline model - `(ctx, next)` with a typed context - and covers auth, logging, metrics, and denial:
 
 ```lua
 local function requireAdmin(ctx, next)
@@ -193,4 +193,4 @@ Plugins receive a capability object, not the App: they can add, but they flow th
 
 ## Design notes & deliberate seams
 
-Serialization/compression is a `Codec` on the transport (encode/decode whole batches); the default is identity because Roblox's engine already compresses remote traffic — custom packing is a codec plugin, not core. Streaming large payloads is a documented non-goal of v0.1: chunk at the application level over events, or contribute a streaming codec. There is no visual in-game inspector UI in core; every inspector data source (timeline entries, graph spec, net stats) is exposed as plain data precisely so tooling can be built on top without framework changes.
+Serialization/compression is a `Codec` on the transport (encode/decode whole batches); the default is identity because Roblox's engine already compresses remote traffic - custom packing is a codec plugin, not core. Streaming large payloads is a documented non-goal of v0.1: chunk at the application level over events, or contribute a streaming codec. There is no visual in-game inspector UI in core; every inspector data source (timeline entries, graph spec, net stats) is exposed as plain data precisely so tooling can be built on top without framework changes.
