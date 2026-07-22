@@ -1,6 +1,6 @@
 # Migrating from Knit to Weave
 
-Weave keeps Knit's philosophy — structure without ceremony, networking without hand-rolled remotes — and replaces every mechanism. Migration is mechanical per service and can be done incrementally: nothing forces a big-bang rewrite, because a Weave App and a legacy Knit runtime can coexist in the same place during transition (they share no global state — Weave has none).
+Weave keeps Knit's philosophy - structure without ceremony, networking without hand-rolled remotes - and replaces every mechanism. Migration is mechanical per service and can be done incrementally: nothing forces a big-bang rewrite, because a Weave App and a legacy Knit runtime can coexist in the same place during transition (they share no global state - Weave has none).
 
 ## Concept mapping
 
@@ -15,12 +15,12 @@ Weave keeps Knit's philosophy — structure without ceremony, networking without
 | `Knit.OnStart():await()` | usually delete it; else `app:onReady(fn)` | Ordering is the framework's job now, not await-choreography |
 | `service.Client:Method(player, ...)` | `Net.rpc` in a schema + `net:handle` | Validated, rate-limited, typed, versioned |
 | `Knit.CreateSignal()` | `Net.event` in a schema | Same, plus batching and optional unreliable channel |
-| `Knit.CreateUnreliableSignal()` | `Net.event(v, { unreliable = true })` | — |
+| `Knit.CreateUnreliableSignal()` | `Net.event(v, { unreliable = true })` | - |
 | `Knit.CreateProperty(v)` | rpc getter + change event (pattern below) | Explicit and validated; RemoteProperty's full-value sync was a footgun |
 | Comm middleware `(player, args) -> (bool, ...)` | `Pipeline` middleware `(ctx, next)` | Typed context, post-processing, real error channel |
 | Promises everywhere | plain calls + `Weave.Future` at async edges | Zero deps; honest stack traces; `await(timeout)` |
 | `Knit.AddServices(folder)` | explicit registry module | Deterministic, reviewable, lazy-capable |
-| — (none) | `ctx:onShutdown` + `app:bindToClose()` | Shutdown is half a lifecycle Knit didn't have |
+| - (none) | `ctx:onShutdown` + `app:bindToClose()` | Shutdown is half a lifecycle Knit didn't have |
 
 ## Worked example
 
@@ -40,14 +40,14 @@ function MoneyService.Client:GetMoney(player)
 end
 ```
 
-Weave — definition:
+Weave - definition:
 
 ```lua
 export type API = { getMoney: (self: API, player: Player) -> number }
 return { Token = Weave.token("MoneyService") :: Weave.Token<API> }
 ```
 
-Weave — implementation + schema:
+Weave - implementation + schema:
 
 ```lua
 -- Shared schema
@@ -96,10 +96,10 @@ More code than `CreateProperty`, but every sync is now typed, validated, batched
 
 1. Drop `Weave` into the place alongside Knit. Create the server/client Apps and start them; both frameworks boot independently.
 2. Migrate leaf services first (no dependents). Bridge direction matters: Weave services must not call `Knit.GetService` (it reintroduces `any` and hidden edges); instead let remaining Knit services reach *into* Weave via `app:get(Token)` after `app:onReady`.
-3. Migrate each service's `Client` table into a schema namespace at the same time you migrate the service — this is where the security payoff lands, so don't defer it.
+3. Migrate each service's `Client` table into a schema namespace at the same time you migrate the service - this is where the security payoff lands, so don't defer it.
 4. Convert Promise chains: `:andThen(f):catch(g)` around a network call becomes `local ok, res = net:call(...)` with an `if`; genuinely concurrent flows use `Weave.Future`.
 5. When the last Knit service is gone, delete `Knit.Start` and the Wally deps.
 
 ## Behavior changes to expect (all intentional)
 
-Startup errors now stop the server loudly instead of booting half-alive — fix the error, don't suppress it. Boot order will differ from whatever accidental order Knit gave you; anything that only worked by luck will surface immediately as an `E_MISSING_DEPENDENCY` / cycle error with a printed chain, which is the bug being found, not created. Unvalidated client payloads that "worked" under Knit (extra fields, wrong types) are now rejected with `E_INVALID_ARGUMENT` — check `net:stats()` invalid counts during rollout to catch schema mismatches early.
+Startup errors now stop the server loudly instead of booting half-alive - fix the error, don't suppress it. Boot order will differ from whatever accidental order Knit gave you; anything that only worked by luck will surface immediately as an `E_MISSING_DEPENDENCY` / cycle error with a printed chain, which is the bug being found, not created. Unvalidated client payloads that "worked" under Knit (extra fields, wrong types) are now rejected with `E_INVALID_ARGUMENT` - check `net:stats()` invalid counts during rollout to catch schema mismatches early.
