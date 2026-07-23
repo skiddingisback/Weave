@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weave · Docs</title>
+  <meta name="description" content="Documentation for Weave — a typed, diagnostics-first service framework for Roblox." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-dark.min.css" />
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./docs.css" />
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="nav" id="top">
+    <div class="nav__inner container">
+      <a class="brand" href="./index.html">
+        <span class="brand__mark" aria-hidden="true"></span>
+        <span class="brand__name">Weave</span>
+      </a>
+      <button class="nav__toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav__links" id="navLinks">
+        <li><a href="./index.html">Home</a></li>
+        <li><a href="./docs.html#about">Docs</a></li>
+        <li><a href="./index.html#quickstart">Quickstart</a></li>
+        <li><a class="nav__cta" href="https://github.com/skiddingisback/Weave" target="_blank" rel="noopener">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="docs-mobilebar">
+    <button id="sidebarToggle">☰ Menu</button>
+    <span class="doc-breadcrumb" id="mobileCrumb">About</span>
+  </div>
+
+  <div class="docs-shell">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__group">
+        <div class="sidebar__title">Introduction</div>
+        <ul class="sidebar__list">
+          <li><a href="#about" data-title="About">About</a></li>
+          <li><a href="#getting-started" data-title="Getting Started">Getting Started</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">Core</div>
+        <ul class="sidebar__list">
+          <li><a href="#services" data-title="Services">Services</a></li>
+          <li><a href="#controllers" data-title="Controllers">Controllers</a></li>
+          <li><a href="#util" data-title="Util">Util</a></li>
+          <li><a href="#execution-model" data-title="Execution Model">Execution Model</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">Guides</div>
+        <ul class="sidebar__list">
+          <li><a href="#examples" data-title="Examples">Examples</a></li>
+          <li><a href="#middleware" data-title="Middleware">Middleware</a></li>
+          <li><a href="#intellisense" data-title="Intellisense">Intellisense</a></li>
+          <li><a href="#vscode-snippets" data-title="VS Code Snippets">VS Code Snippets</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Content -->
+    <main class="doc-main">
+
+      <!-- ========================= ABOUT ========================= -->
+      <section class="doc-page" id="about">
+        <div class="doc-breadcrumb">Introduction › <span>About</span></div>
+        <h1>Weave</h1>
+        <p class="doc-lead">A typed, diagnostics-first dependency-injection framework for Roblox — a from-first-principles redesign of the space <strong>Knit</strong> occupied.</p>
+        <p>Weave is built for large production games: hundreds of modules, dozens of services, multiple developers, Rojo, CI, automated tests, and hot reload. It is written in strict Luau and has <strong>zero runtime dependencies</strong>.</p>
+
+        <h2>Why Weave?</h2>
+        <ul>
+          <li><strong>Typed dependency injection.</strong> Services are looked up by typed <em>tokens</em>. You get full autocomplete on every dependency, everywhere, and implementations never <code>require</code> each other — so large graphs stay cycle-free at the module level.</li>
+          <li><strong>One abstraction for both sides.</strong> Servers and clients are both described with a single <code>Weave.service</code> primitive. A "service" runs on the server; a "controller" is simply a service that runs on the client.</li>
+          <li><strong>Deterministic startup.</strong> Declared dependencies drive a topological boot order, cycle detection, and fail-fast lifecycle phases. Shutdown runs in reverse.</li>
+          <li><strong>Schema-first networking.</strong> RPCs and events are validated on both sides against a shared schema, with rate limiting, middleware, and a version fingerprint that catches deploy skew.</li>
+          <li><strong>Diagnostics you can read.</strong> Startup timelines, dependency graphs (Mermaid &amp; DOT), and structured errors that suggest concrete fixes.</li>
+        </ul>
+
+        <div class="adm adm--note">
+          <div class="adm__label">Coming from Knit?</div>
+          <p>The mental model is familiar: services, controllers, lifecycle, networking. The big differences are typed tokens instead of string keys, declared dependencies with an explicit boot order, and validated networking. See <a href="#getting-started">Getting Started</a>.</p>
+        </div>
+      </section>
+
+      <!-- ===================== GETTING STARTED ===================== -->
+      <section class="doc-page" id="getting-started">
+        <div class="doc-breadcrumb">Introduction › <span>Getting Started</span></div>
+        <h1>Getting Started</h1>
+        <p class="doc-lead">Install Weave, lay out your project, and boot your first app.</p>
+
+        <h2>Installation</h2>
+        <h3>Wally (recommended)</h3>
+        <pre><code class="language-toml">[dependencies]
+Weave = "skiddingisback/weave@0.1.0"</code></pre>
+        <p>Then run <code>wally install</code> and require it from your <code>Packages</code> folder:</p>
+        <pre><code class="language-lua">local Weave = require(game.ReplicatedStorage.Packages.Weave)</code></pre>
+
+        <h3>Rojo (manual)</h3>
+        <p>Drop the library's <code>src</code> folder anywhere shared and point Rojo at it:</p>
+        <pre><code class="language-json">{ "ReplicatedStorage": { "Weave": { "$path": "path/to/Weave/src" } } }</code></pre>
+
+        <h2>Project layout</h2>
+        <p>A conventional structure keeps each service in its own folder, with a <em>definition</em> module (the typed contract) beside its <em>implementation</em>:</p>
+        <pre><code class="language-text">ReplicatedStorage/
+  Weave/                 -- the framework
+  Shared/
+    DataService/
+      definition.luau    -- token + API type (required by everyone)
+ServerScriptService/
+  Services/
+    DataService/
+      init.luau          -- implementation (Weave.service{...})
+  Registry.luau          -- lists every service to register</code></pre>
+
+        <h2>Bootstrap the server</h2>
+        <pre><code class="language-lua">local Weave = require(game.ReplicatedStorage.Weave)
+
+local app = Weave.App.new({ name = "Server" })
+app:registerMany(require(game.ServerScriptService.Registry))
+
+local report = app:start()
+print(report.timelineText)   -- startup timeline
+app:bindToClose()            -- graceful shutdown</code></pre>
+
+        <h2>Bootstrap the client</h2>
+        <pre><code class="language-lua">local Weave = require(game.ReplicatedStorage.Weave)
+
+local app = Weave.App.new({ name = "Client" })
+app:registerMany(require(game.ReplicatedStorage.Client.Registry))
+app:start()</code></pre>
+
+        <div class="adm adm--tip">
+          <div class="adm__label">Tip</div>
+          <p>A <code>Registry</code> module just returns an array of <code>Weave.service{...}</code> results. Keeping registration in one place makes the boot order and dependency graph easy to reason about.</p>
+        </div>
+      </section>
+
+      <!-- ========================= SERVICES ========================= -->
+      <section class="doc-page" id="services">
+        <div class="doc-breadcrumb">Core › <span>Services</span></div>
+        <h1>Services</h1>
+        <p class="doc-lead">A service is a long-lived singleton with a typed API and declared dependencies. Services run on the server.</p>
+
+        <h2>1. The definition module</h2>
+        <p>Every service has a small <strong>definition module</strong> that exports its API type and a token cast against it. This is the module both implementations and consumers require — it carries no logic, so requiring it never creates a cycle.</p>
+        <pre><code class="language-lua">-- DataService/definition.luau
+local Weave = require(game.ReplicatedStorage.Weave)
+
+export type API = {
+    read: (self: API, player: Player, key: string) -> number,
+    write: (self: API, player: Player, key: string, value: number) -> (),
+}
+
+return { Token = Weave.token("DataService") :: Weave.Token&lt;API&gt; }</code></pre>
+
+        <h2>2. The implementation</h2>
+        <p>The implementation returns <code>Weave.service{...}</code>. Dependencies are declared (that is what makes ordering and cycle detection possible) and resolved with full types via <code>ctx:use</code>.</p>
+        <pre><code class="language-lua">-- ShopService/init.luau
+local Weave = require(game.ReplicatedStorage.Weave)
+local Def = require(script.definition)
+local DataDef = require(script.Parent.DataService.definition)
+
+return Weave.service({
+    token = Def.Token,
+    dependencies = { DataDef.Token },
+    create = function(ctx): Def.API
+        local data = ctx:use(DataDef.Token)   -- typed as DataDef.API
+        local self = {} :: Def.API
+
+        function self.buy(_, player, itemId)
+            local balance = data:read(player, "balance")
+            -- ...
+        end
+
+        ctx:onStart(function()
+            ctx.log:info("shop open")
+        end)
+
+        return self
+    end,
+})</code></pre>
+
+        <h2>The service context</h2>
+        <p><code>create</code> receives a <code>ctx</code> with everything the service needs:</p>
+        <table>
+          <thead><tr><th>Member</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>ctx:use(token)</code></td><td>Resolve a declared dependency (typed).</td></tr>
+            <tr><td><code>ctx:useOptional(token)</code></td><td>Resolve if present, else <code>nil</code>.</td></tr>
+            <tr><td><code>ctx.log</code></td><td>A scoped <a href="#util">logger</a>.</td></tr>
+            <tr><td><code>ctx:own(item)</code></td><td>Track a resource; released at shutdown.</td></tr>
+            <tr><td><code>ctx:spawn(fn)</code></td><td>Managed loop/thread, cancelled at shutdown.</td></tr>
+            <tr><td><code>ctx:onStart(fn)</code></td><td>Fail-fast startup hook, runs in topo order.</td></tr>
+            <tr><td><code>ctx:onReady(fn)</code></td><td>Runs after all services started (errors non-fatal).</td></tr>
+            <tr><td><code>ctx:onShutdown(fn)</code> / <code>ctx:onDestroy(fn)</code></td><td>Teardown hooks, run in reverse boot order.</td></tr>
+            <tr><td><code>ctx:getConfig(key)</code> / <code>ctx:getMetadata(key)</code></td><td>Read app config / service metadata.</td></tr>
+          </tbody>
+        </table>
+
+        <div class="adm adm--warning">
+          <div class="adm__label">Don't loop in onStart</div>
+          <p><code>onStart</code> is fail-fast and sequential. Long-running loops belong in <code>ctx:spawn(...)</code>, not in an <code>onStart</code> body, or startup will block.</p>
+        </div>
+
+        <h2>Registering &amp; starting</h2>
+        <pre><code class="language-lua">local app = Weave.App.new({ name = "Server" })
+app:register(require(ShopService))         -- one
+app:registerMany(require(Registry))         -- or many
+app:provide(ConfigToken, { maxItems = 20 }) -- plain values
+app:start()</code></pre>
+      </section>
+
+      <!-- ======================== CONTROLLERS ======================== -->
+      <section class="doc-page" id="controllers">
+        <div class="doc-breadcrumb">Core › <span>Controllers</span></div>
+        <h1>Controllers</h1>
+        <p class="doc-lead">A controller is a client-side service. It uses the exact same <code>Weave.service</code> primitive — there is no separate API to learn.</p>
+
+        <p>On the client you create a client <code>App</code>, register your controllers, and start it. Controllers typically own input, UI, and a <a href="#middleware">NetClient</a> that talks to server services.</p>
+
+        <pre><code class="language-lua">-- ShopController/init.luau
+local Weave = require(game.ReplicatedStorage.Weave)
+local Def = require(script.definition)
+local NetDef = require(script.Parent.Net.definition)
+
+return Weave.service({
+    token = Def.Token,
+    dependencies = { NetDef.Token },
+    create = function(ctx): Def.API
+        local net = ctx:use(NetDef.Token)
+        local self = {} :: Def.API
+
+        function self.buy(_, itemId)
+            local ok, res = net:call(ShopApi.buy, { itemId = itemId })
+            return ok and res or nil
+        end
+
+        ctx:onStart(function()
+            ctx.log:info("shop UI ready")
+        end)
+
+        return self
+    end,
+})</code></pre>
+
+        <div class="adm adm--note">
+          <div class="adm__label">Server vs. client</div>
+          <p>The only difference between a service and a controller is <em>which App registers it</em>. Weave will error clearly if a server-only dependency is resolved from a client App (or vice versa).</p>
+        </div>
+
+        <h2>Client bootstrap</h2>
+        <pre><code class="language-lua">local app = Weave.App.new({ name = "Client" })
+app:registerMany(require(game.ReplicatedStorage.Client.Registry))
+app:start()
+
+app:onReady(function()
+    print("all controllers started")
+end)</code></pre>
+      </section>
+
+      <!-- ========================== UTIL ========================== -->
+      <section class="doc-page" id="util">
+        <div class="doc-breadcrumb">Core › <span>Util</span></div>
+        <h1>Util</h1>
+        <p class="doc-lead">Weave ships a small set of dependency-free utilities used throughout the framework — and usable on their own.</p>
+
+        <table>
+          <thead><tr><th>Module</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>Weave.Signal</code></td><td>Typed event emitter (<code>Connect</code>, <code>Once</code>, <code>Wait</code>, <code>Fire</code>, <code>Destroy</code>).</td></tr>
+            <tr><td><code>Weave.Future</code></td><td>A settle-once async value (<code>await</code>, <code>andThen</code>, <code>cancel</code>).</td></tr>
+            <tr><td><code>Weave.Bin</code></td><td>Cleanup collector for connections, instances, threads, and functions.</td></tr>
+            <tr><td><code>Weave.Log</code></td><td>Leveled, scoped logging with a swappable sink.</td></tr>
+            <tr><td><code>Weave.Error</code></td><td>Structured errors with a code, chain, and suggested fixes.</td></tr>
+            <tr><td><code>Weave.Check</code></td><td>Runtime validators (used by the network schema).</td></tr>
+            <tr><td><code>Weave.Timeline</code> / <code>Weave.GraphExport</code></td><td>Startup diagnostics and graph export.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Signal</h3>
+        <pre><code class="language-lua">local bought = Weave.Signal.new() :: Weave.Signal&lt;Player, string&gt;
+local conn = bought:Connect(function(player, itemId) end)
+bought:Fire(player, "sword")
+conn:Disconnect()</code></pre>
+
+        <h3>Bin</h3>
+        <pre><code class="language-lua">local bin = Weave.Bin.new()
+bin:own(part.Touched:Connect(onTouch))  -- RBXScriptConnection
+bin:own(model)                           -- Instance
+bin:own(function() print("cleanup") end) -- function
+bin:destroy()                            -- releases everything, in reverse</code></pre>
+
+        <h3>Future</h3>
+        <pre><code class="language-lua">local ok, value = someFuture:await(5)    -- yields up to 5s
+someFuture:andThen(function(ok, value) end)</code></pre>
+
+        <div class="adm adm--tip">
+          <div class="adm__label">Tip</div>
+          <p>Inside a service, prefer <code>ctx:own(...)</code> over a manual <code>Bin</code> — the framework destroys it for you when the service shuts down.</p>
+        </div>
+      </section>
+
+      <!-- ====================== EXECUTION MODEL ====================== -->
+      <section class="doc-page" id="execution-model">
+        <div class="doc-breadcrumb">Core › <span>Execution Model</span></div>
+        <h1>Execution Model</h1>
+        <p class="doc-lead">Exactly what happens between <code>app:start()</code> and a running game — and how it tears down.</p>
+
+        <h2>Startup phases</h2>
+        <ol>
+          <li><strong>configure</strong> — each service's optional <code>configure(ctx)</code> runs. It can <code>disable()</code> itself (feature flags / platform gating) or set metadata.</li>
+          <li><strong>resolve</strong> — declared dependencies are checked and topologically sorted. Missing or cyclic dependencies fail here with a readable error.</li>
+          <li><strong>init</strong> — services are constructed in dependency order (each <code>create</code> runs once). A watchdog warns if a step yields too long.</li>
+          <li><strong>start</strong> — <code>onStart</code> callbacks run, fail-fast, in boot order. Any error unwinds already-started services in reverse.</li>
+          <li><strong>ready</strong> — <code>onReady</code> callbacks run. Errors here are reported as warnings, not fatal.</li>
+        </ol>
+
+        <div class="adm adm--note">
+          <div class="adm__label">Fail-fast vs. best-effort</div>
+          <p><code>init</code> and <code>start</code> are <strong>fail-fast</strong>: a thrown error aborts startup and cleanly unwinds. <code>ready</code> is <strong>best-effort</strong>: a failing <code>onReady</code> is logged and collected in the start report's warnings.</p>
+        </div>
+
+        <h2>Ordering &amp; cycles</h2>
+        <p>The boot order is a topological sort of the declared dependency graph, tie-broken by registration order for stable output. A cycle produces <code>E_CIRCULAR_DEPENDENCY</code> with the exact chain. Break cycles by extracting a shared service, or make one edge <code>optionalDependencies</code> and resolve it lazily.</p>
+
+        <h2>Lazy services</h2>
+        <p>Mark a service <code>lazy = true</code> to register and cycle-check it without constructing it at boot. It builds on first <code>app:activate(token)</code> or first resolve:</p>
+        <pre><code class="language-lua">return Weave.service({
+    token = Def.Token,
+    lazy = true,
+    create = function(ctx) ... end,
+})
+
+-- later, on demand:
+local feature = app:activate(Def.Token)</code></pre>
+
+        <h2>Shutdown</h2>
+        <p><code>app:shutdown()</code> (and <code>app:bindToClose()</code> on the server) runs <code>onShutdown</code> then <code>onDestroy</code> in reverse boot order, destroys every service's <code>Bin</code>, and disposes the container.</p>
+
+        <h2>The start report</h2>
+        <pre><code class="language-lua">local report = app:start()
+print(report.timelineText)   -- per-service timing table
+print(report.graphMermaid)   -- paste into a Markdown/PR
+print(report.warnings)       -- non-fatal issues
+</code></pre>
+      </section>
+
+      <!-- ========================= EXAMPLES ========================= -->
+      <section class="doc-page" id="examples">
+        <div class="doc-breadcrumb">Guides › <span>Examples</span></div>
+        <h1>Examples</h1>
+        <p class="doc-lead">End-to-end snippets that put the pieces together.</p>
+
+        <h2>A service with a dependency</h2>
+        <pre><code class="language-lua">-- DataService/definition.luau
+export type API = { read: (self: API, p: Player, k: string) -> number }
+return { Token = Weave.token("DataService") :: Weave.Token&lt;API&gt; }
+
+-- ShopService/init.luau
+return Weave.service({
+    token = ShopDef.Token,
+    dependencies = { DataDef.Token },
+    create = function(ctx): ShopDef.API
+        local data = ctx:use(DataDef.Token)
+        local self = {} :: ShopDef.API
+        function self.getBalance(_, player)
+            return data:read(player, "balance")
+        end
+        return self
+    end,
+})</code></pre>
+
+        <h2>A validated RPC</h2>
+        <pre><code class="language-lua">-- shared schema
+local Check = Weave.Check
+local ShopApi = Weave.Net.namespace("Shop", {
+    buy = Weave.Net.rpc(
+        Check.shape({ itemId = Check.string }),      -- request
+        Check.shape({ ok = Check.boolean }),          -- response
+        { rate = 10 }                                 -- 10 req/s per player
+    ),
+})
+
+-- server
+net:handle(ShopApi.buy, function(player, req)
+    return { ok = shop:buy(player, req.itemId) }
+end)
+
+-- client
+local ok, res = net:call(ShopApi.buy, { itemId = "sword" })</code></pre>
+
+        <h2>Broadcasting an event</h2>
+        <pre><code class="language-lua">local Events = Weave.Net.namespace("Shop", {
+    priceChanged = Weave.Net.event(Check.shape({ itemId = Check.string, price = Check.number })),
+})
+
+-- server
+net:broadcast(Events.priceChanged, { itemId = "sword", price = 120 })
+
+-- client
+net:on(Events.priceChanged, function(payload)
+    updatePriceTag(payload.itemId, payload.price)
+end)</code></pre>
+      </section>
+
+      <!-- ========================= MIDDLEWARE ========================= -->
+      <section class="doc-page" id="middleware">
+        <div class="doc-breadcrumb">Guides › <span>Middleware</span></div>
+        <h1>Middleware</h1>
+        <p class="doc-lead">Cross-cutting logic for networking — auth, logging, throttling — composed as a pipeline.</p>
+
+        <h2>Server middleware</h2>
+        <p>Each middleware receives a <code>ServerNetContext</code> and a <code>next</code> function. Call <code>next()</code> to continue the chain; set a deny code to reject the request before it reaches its handler.</p>
+        <pre><code class="language-lua">local function requireAuth(ctx, next)
+    if not isAuthed(ctx.player) then
+        ctx.denyCode = "E_UNAUTHORIZED"
+        ctx.denyMessage = "sign in first"
+        return            -- do NOT call next(): request is denied
+    end
+    next()
+end
+
+local net = Weave.Net.Server.new({
+    transport = Weave.Net.RobloxTransport.createServer({ fingerprint = fp }),
+    namespaces = { ShopApi },
+    middleware = { requireAuth },
+})</code></pre>
+
+        <h3>The context</h3>
+        <table>
+          <thead><tr><th>Field</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>ctx.player</code></td><td>The sending player (peer).</td></tr>
+            <tr><td><code>ctx.endpointId</code> / <code>ctx.kind</code></td><td>Which endpoint, and <code>"rpc"</code> or <code>"event"</code>.</td></tr>
+            <tr><td><code>ctx.payload</code></td><td>The raw (pre-validation) payload.</td></tr>
+            <tr><td><code>ctx.meta</code></td><td>Scratch table to pass data down the chain.</td></tr>
+            <tr><td><code>ctx.denyCode</code> / <code>ctx.denyMessage</code></td><td>Set to reject the request.</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Rate limiting</h2>
+        <p>Every endpoint is rate limited with a token bucket. Set <code>rate</code> (per second) and optional <code>burst</code> per endpoint, or defaults on the server:</p>
+        <pre><code class="language-lua">buy = Weave.Net.rpc(reqCheck, resCheck, { rate = 10, burst = 20 })</code></pre>
+
+        <h2>Outbound interceptors</h2>
+        <p>Transform or observe every outgoing payload (e.g. compression, analytics) via <code>outbound</code> on the server/client options.</p>
+
+        <h2>Generic pipelines</h2>
+        <p><code>Weave.Pipeline.compile(steps, terminal)</code> builds the same onion-style chain for any context type, not just networking.</p>
+      </section>
+
+      <!-- ======================== INTELLISENSE ======================== -->
+      <section class="doc-page" id="intellisense">
+        <div class="doc-breadcrumb">Guides › <span>Intellisense</span></div>
+        <h1>Intellisense</h1>
+        <p class="doc-lead">Weave is designed so your editor knows the type of every service, dependency, and network payload.</p>
+
+        <h2>How it works</h2>
+        <p>The <code>definition.luau</code> pattern is the key. Because a token is cast against an exported API type:</p>
+        <pre><code class="language-lua">return { Token = Weave.token("DataService") :: Weave.Token&lt;API&gt; }</code></pre>
+        <p>…every <code>ctx:use(DataDef.Token)</code> resolves to <code>DataDef.API</code>, so method names, arguments, and return types all autocomplete — across module and even actor boundaries.</p>
+
+        <h2>Editor setup</h2>
+        <p>Weave is a Rojo project, so <a href="https://github.com/JohnnyMorganz/luau-lsp" target="_blank" rel="noopener">luau-lsp</a> can type-check against a sourcemap:</p>
+        <pre><code class="language-bash">rojo sourcemap default.project.json --output sourcemap.json
+luau-lsp analyze --sourcemap=sourcemap.json src</code></pre>
+        <p>In VS Code, the luau-lsp extension auto-generates the sourcemap. The repo ships a <code>.vscode/settings.json</code> and a <code>.luaurc</code> that enable strict mode and Roblox types.</p>
+
+        <div class="adm adm--tip">
+          <div class="adm__label">Definition modules carry no logic</div>
+          <p>Keeping the token + types in a separate, logic-free module is what lets everyone require it without creating a dependency cycle at the <code>require</code> level.</p>
+        </div>
+      </section>
+
+      <!-- ====================== VSCODE SNIPPETS ====================== -->
+      <section class="doc-page" id="vscode-snippets">
+        <div class="doc-breadcrumb">Guides › <span>VS Code Snippets</span></div>
+        <h1>VS Code Snippets</h1>
+        <p class="doc-lead">Scaffold Weave definitions and services in a couple of keystrokes.</p>
+
+        <p>Create <code>.vscode/weave.code-snippets</code> in your project and paste the following. Type the prefix (e.g. <code>wservice</code>) and press <kbd>Tab</kbd>.</p>
+        <pre><code class="language-json">{
+  "Weave definition module": {
+    "prefix": "wdef",
+    "body": [
+      "local Weave = require(game.ReplicatedStorage.Weave)",
+      "",
+      "export type API = {",
+      "\t$0",
+      "}",
+      "",
+      "return { Token = Weave.token(\"${1:ServiceName}\") :: Weave.Token<API> }"
+    ],
+    "description": "Weave token + API definition module"
+  },
+  "Weave service": {
+    "prefix": "wservice",
+    "body": [
+      "local Weave = require(game.ReplicatedStorage.Weave)",
+      "local Def = require(script.definition)",
+      "",
+      "return Weave.service({",
+      "\ttoken = Def.Token,",
+      "\tdependencies = { $2 },",
+      "\tcreate = function(ctx): Def.API",
+      "\t\tlocal self = {} :: Def.API",
+      "\t\t$0",
+      "\t\tctx:onStart(function() end)",
+      "\t\treturn self",
+      "\tend,",
+      "})"
+    ],
+    "description": "Weave service implementation"
+  },
+  "Weave RPC": {
+    "prefix": "wrpc",
+    "body": [
+      "${1:name} = Weave.Net.rpc(",
+      "\tWeave.Check.shape({ $2 }),",
+      "\tWeave.Check.shape({ $3 })",
+      "),"
+    ],
+    "description": "Weave networked RPC endpoint"
+  },
+  "Weave event": {
+    "prefix": "wevent",
+    "body": [
+      "${1:name} = Weave.Net.event(Weave.Check.shape({ $2 })),"
+    ],
+    "description": "Weave networked event endpoint"
+  }
+}</code></pre>
+
+        <div class="adm adm--note">
+          <div class="adm__label">Language scope</div>
+          <p>A <code>.code-snippets</code> file is available in every language. If you use a dedicated Luau grammar, you can instead put these under a <code>luau.json</code> snippets file scoped to Luau.</p>
+        </div>
+      </section>
+
+      <!-- Prev / next injected by docs.js -->
+      <nav class="doc-nav" id="docNav"></nav>
+    </main>
+  </div>
+
+  <script src="./main.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+  <script src="./docs.js"></script>
+</body>
+</html>

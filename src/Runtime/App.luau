@@ -48,10 +48,9 @@ export type StartReport = {
 type ServiceRecord = {
 	reg: ServiceRegistration,
 	index: number,
+	-- Set by app:override or ctx:disable — the container answers for the token
+	-- (or it is excluded), so the service build is skipped.
 	disabled: boolean,
-	-- Overridden via app:override — the container answers for the token, so
-	-- the service build is skipped but dependents remain satisfied.
-	overridden: boolean,
 	built: boolean,
 	started: boolean,
 	instance: any,
@@ -84,6 +83,7 @@ export type App = typeof(setmetatable(
 		_lifecycleHooks: { (phase: string) -> () },
 		_contributions: { [string]: { any } },
 		_commands: { [string]: (...any) -> ...any },
+		_installedPlugins: { [string]: boolean },
 		_testing: boolean,
 		_phaseTimeout: number,
 	},
@@ -113,6 +113,7 @@ function App.new(options: AppOptions?): App
 		_lifecycleHooks = {},
 		_contributions = {},
 		_commands = {},
+		_installedPlugins = {},
 		_testing = opts.testing == true,
 		_phaseTimeout = 10,
 	}, App)
@@ -195,6 +196,15 @@ function App.override<T>(self: App, token: TokenModule.Token<T>, value: T)
 end
 
 function App.use(self: App, plugin: PluginHost.Plugin)
+	-- Per-app duplicate guard (PluginHost no longer keeps global state, so the
+	-- same plugin can be installed into other App instances). Only mark it as
+	-- installed after install succeeds, so a failed install can be retried.
+	local hasName = type(plugin) == "table" and type((plugin :: any).name) == "string"
+	if hasName and self._installedPlugins[plugin.name] then
+		Error.throw("E_DUPLICATE_PLUGIN", string.format(
+			'plugin "%s" installed twice into app "%s"', plugin.name, self._name
+		))
+	end
 	PluginHost.install(plugin, {
 		appName = self._name,
 		registerService = function(registration: ServiceRegistration)
@@ -224,6 +234,9 @@ function App.use(self: App, plugin: PluginHost.Plugin)
 			table.insert(self._lifecycleHooks, fn)
 		end,
 	})
+	if hasName then
+		self._installedPlugins[plugin.name] = true
+	end
 end
 
 -- Extension seam: plugins contribute values under a key (e.g. net middleware

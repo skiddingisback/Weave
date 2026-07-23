@@ -1,0 +1,6 @@
+# Toolchain managed by Aftman (https://github.com/LPGhatguy/aftman).
+# Run `aftman install` after cloning to get pinned versions of every tool.
+[tools]
+rojo = "rojo-rbx/rojo@7.7.0"
+wally = "UpliftGames/wally@0.3.2"
+luau-lsp = "JohnnyMorganz/luau-lsp@1.69.0"

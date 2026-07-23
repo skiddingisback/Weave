@@ -184,7 +184,7 @@ end
 
 local function replyError(self: NetServer, peer: any, endpointId: string, correlation: number, code: string, message: string)
 	statsFor(self, endpointId).errors += 1
-	local packet: Packet = { TransportTypes.PACKET_RESPONSE, endpointId, correlation, { false, code, message } }
+	local packet: Packet = { TransportTypes.PACKET_RESPONSE, endpointId, correlation, { false, code, message } :: { any } }
 	self._transport:send(peer, packet)
 end
 

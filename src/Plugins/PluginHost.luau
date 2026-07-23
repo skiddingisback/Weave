@@ -20,23 +20,18 @@ export type Plugin = {
 
 local PluginHost = {}
 
-local installed: { [string]: boolean } = {}
-
--- runs the plugin's install function with a sandboxed api object
+-- runs the plugin's install function with a sandboxed api object.
+-- Duplicate detection is the caller's responsibility (see App:use): dedup
+-- must be scoped to a single app, not global, or two apps sharing a name
+-- (common in tests) would wrongly reject the same plugin.
 function PluginHost.install(plugin: Plugin, api: PluginApi)
 	if type(plugin) ~= "table" or type(plugin.name) ~= "string" or type(plugin.install) ~= "function" then
 		Error.throw("E_BAD_PLUGIN", "a plugin must be a table with a string `name` and an `install(api)` function", {
 			fixes = { "return { name = ..., version = ..., install = function(api) ... end }" },
 		})
 	end
-	local key = api.appName .. "/" .. plugin.name
-	if installed[key] then
-		Error.throw("E_DUPLICATE_PLUGIN", string.format('plugin "%s" installed twice into app "%s"', plugin.name, api.appName))
-	end
-	installed[key] = true
 	local ok, err = pcall(plugin.install, api)
 	if not ok then
-		installed[key] = nil
 		Error.throw("E_PLUGIN_INSTALL_FAILED", string.format(
 			'plugin "%s"%s failed to install: %s',
 			plugin.name,

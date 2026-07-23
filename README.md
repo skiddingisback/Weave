@@ -4,11 +4,44 @@ A modern application framework for Roblox. Strict Luau, zero runtime dependencie
 
 ## Installation
 
-Sync the `Weave` folder anywhere shared - `ReplicatedStorage/Weave` is conventional. There are no dependencies to install; Weave has none.
+Weave has zero runtime dependencies. Pick whichever fits your setup.
+
+### Wally (recommended)
+
+Add it to your `wally.toml`:
+
+```toml
+[dependencies]
+Weave = "skiddingisback/weave@0.1.0"
+```
+
+Then `wally install` and require it from wherever your `Packages` folder is synced:
+
+```lua
+local Weave = require(game.ReplicatedStorage.Packages.Weave)
+```
+
+### Rojo (manual / submodule)
+
+Drop the library's `src` folder anywhere shared — `ReplicatedStorage/Weave` is conventional — and point Rojo at it:
 
 ```json
-{ "ReplicatedStorage": { "Weave": { "$path": "Weave" } } }
+{ "ReplicatedStorage": { "Weave": { "$path": "path/to/Weave/src" } } }
 ```
+
+## Working on Weave itself
+
+This repo is a Rojo + Wally + Aftman project. The library source lives in `src/`.
+
+```bash
+aftman install                 # rojo, wally, luau-lsp at pinned versions
+wally install                  # no runtime deps, but sets up the Packages link
+rojo sourcemap default.project.json --output sourcemap.json
+luau-lsp analyze --sourcemap=sourcemap.json src   # type-check
+rojo build default.project.json --output Weave.rbxm
+```
+
+Open the folder in an editor with the luau-lsp extension (settings are provided in `.vscode/`) for live type-checking against the sourcemap.
 
 ## Core concepts
 

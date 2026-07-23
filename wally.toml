@@ -1,0 +1,21 @@
+[package]
+name = "skiddingisback/weave"
+version = "0.1.0"
+description = "A typed, diagnostics-first dependency-injection service framework for Roblox — a modern replacement for Knit."
+license = "MIT"
+authors = ["skiddingisback"]
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+# `include` is a whitelist: only these paths are published to the registry,
+# keeping dev-only files (aftman.toml, .git, sourcemap) out of the package.
+include = [
+    "src",
+    "src/**",
+    "default.project.json",
+    "wally.toml",
+    "README.md",
+    "MIGRATION.md",
+    "LICENSE",
+]
+
+[dependencies]

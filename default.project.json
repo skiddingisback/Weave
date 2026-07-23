@@ -1,0 +1,7 @@
+{
+  "name": "Weave",
+  "globIgnorePaths": ["**/*.spec.luau", "**/*.test.luau"],
+  "tree": {
+    "$path": "src"
+  }
+}

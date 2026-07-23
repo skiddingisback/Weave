@@ -1,0 +1,22 @@
+# Wally
+/Packages
+/ServerPackages
+/DevPackages
+wally.lock
+
+# Rojo / build artifacts
+sourcemap.json
+*.rbxl
+*.rbxlx
+*.rbxm
+*.rbxmx
+*.rbxl.lock
+*.rbxlx.lock
+
+# Aftman / tooling
+/.aftman
+
+# Editor
+.vscode/*
+!.vscode/settings.json
+.DS_Store
