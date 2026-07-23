@@ -31,6 +31,10 @@ jobs:
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
+        with:
+          # Enable Pages via the API if it hasn't been turned on yet, so the
+          # first run doesn't fail with "Get Pages site failed / Not Found".
+          enablement: true
 
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
